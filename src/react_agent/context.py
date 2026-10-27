@@ -36,10 +36,16 @@ class Context:
         },
     )
 
+    search_enabled: bool = field(
+        default=True,
+        metadata={"description": "Whether this turn is allowed to use web search."},
+    )
+
     def __post_init__(self) -> None:
         """Fetch env vars for attributes that were not passed as args."""
         for f in fields(self):
-            if not f.init:
+            # Search permission is an explicit per-turn choice, never an env override.
+            if not f.init or f.name == "search_enabled":
                 continue
 
             if getattr(self, f.name) == f.default:

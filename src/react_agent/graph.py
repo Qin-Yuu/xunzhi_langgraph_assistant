@@ -4,10 +4,12 @@ Works with a chat model with tool calling support.
 """
 
 from datetime import UTC, datetime
-from typing import Dict, List, Literal, cast
+from typing import Any, Dict, List, Literal, cast
 
 from langchain_core.messages import AIMessage
+from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import StateGraph
+from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.runtime import Runtime
 
@@ -34,7 +36,8 @@ async def call_model(
         dict: A dictionary containing the model's response message.
     """
     # Initialize the model with tool binding. Change the model or add more tools here.
-    model = load_chat_model(runtime.context.model).bind_tools(TOOLS)
+    base_model = load_chat_model(runtime.context.model)
+    model = base_model.bind_tools(TOOLS) if runtime.context.search_enabled else base_model
 
     # Format the system prompt. Customize this to change the agent's behavior.
     system_message = runtime.context.system_prompt.format(
@@ -113,4 +116,11 @@ builder.add_conditional_edges(
 builder.add_edge("tools", "call_model")
 
 # Compile the builder into an executable graph
-graph = builder.compile(name="ReAct Agent")
+def build_graph(
+    checkpointer: BaseCheckpointSaver[Any] | None = None,
+) -> CompiledStateGraph[State, Context, InputState, State]:
+    """Compile the original graph, optionally with persistent conversation state."""
+    return builder.compile(checkpointer=checkpointer, name="ReAct Agent")
+
+
+graph = build_graph()

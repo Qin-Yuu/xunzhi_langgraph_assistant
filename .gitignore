@@ -162,3 +162,12 @@ cython_debug/
 #.idea/
 
 .langgraph_api
+
+# Local chat application
+data/
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+work/
+LOCAL_SETUP_STATUS.json
+START_HERE.md

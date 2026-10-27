@@ -22,8 +22,15 @@ async def search(query: str) -> dict[str, Any] | None:
     for answering questions about current events.
     """
     runtime = get_runtime(Context)
+    # Enforce the switch even if a model emits a tool call without tool binding.
+    if not runtime.context.search_enabled:
+        return {"blocked": True, "error": "本条消息已关闭联网搜索，未请求外部搜索服务。"}
     wrapped = TavilySearch(max_results=runtime.context.max_search_results)
-    return cast(dict[str, Any], await wrapped.ainvoke({"query": query}))
+    result = cast(dict[str, Any], await wrapped.ainvoke({"query": query}))
+    # Tavily may return an exception object as data instead of raising it.
+    if isinstance(result, dict) and result.get("error"):
+        return {"status": "error", "error": str(result["error"])[:500], "results": []}
+    return result
 
 
 TOOLS: List[Callable[..., Any]] = [search]
