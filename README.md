@@ -37,8 +37,8 @@
 ### 1. 安装依赖
 
 ```powershell
-git clone https://github.com/Qin-Yuu/react-agent.git
-cd react-agent
+git clone https://github.com/Qin-Yuu/xunzhi_langgraph_assistant.git
+cd xunzhi_langgraph_assistant
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e .
 cd frontend
